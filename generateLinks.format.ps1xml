@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  generateLinks.format.ps1xml
+  generateLinks.ps1 が出力するオブジェクトの表形式ビュー定義。
+  スクリプト起動時に Update-FormatData -PrependPath で読み込まれる。
+-->
+<Configuration>
+  <ViewDefinitions>
+
+    <View>
+      <Name>GenerateLinks.ResultRow</Name>
+      <ViewSelectedBy>
+        <TypeName>GenerateLinks.ResultRow</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Result</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Exists</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Path</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Description</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Result</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.Exists) { 'true' } else { 'false' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>Type</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Path</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Description</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>GenerateLinks.CheckRow</Name>
+      <ViewSelectedBy>
+        <TypeName>GenerateLinks.CheckRow</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Exists</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Path</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Link to</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Links</Label><Width>5</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><ScriptBlock>if ($_.Exists) { 'true' } else { 'false' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>Type</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Path</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Link to</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Links</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+  </ViewDefinitions>
+</Configuration>
