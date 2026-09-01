@@ -79,7 +79,8 @@ USAGE
 OPTIONS
   -t, --target <path>   Real file or directory to link FROM. Required.
                         A bare positional argument is treated as --target.
-  -s, --source <path>   List file (default: <script folder>\target.list).
+  -s, --source <path>   List file. Default: target.list in the script folder,
+                        then target.list in the current directory.
   -o, --overwrite       Replace an existing LINK. Real files/dirs are kept.
       --hard            Create hard links instead of symbolic links.
       --check           Only report existence / type of each entry. No changes.
@@ -201,21 +202,37 @@ function Resolve-TargetInfo {
 }
 
 function Resolve-SourcePath {
-    # リストファイルのパスを解決する。--source 未指定ならスクリプトフォルダの target.list。
+    # リストファイルのパスを解決する。
+    #   --source 指定時   : その値(カレント基準)。見つからなければ致命的エラー。
+    #   --source 未指定時 : (1) スクリプトフォルダの target.list を探す
+    #                       (2) 無ければカレントディレクトリの target.list を探す
+    #                       どちらにも無ければ致命的エラー。
     # 引数:
-    #   $Source    - --source 指定値(カレント基準) / 空なら既定
+    #   $Source    - --source 指定値(カレント基準) / 空なら既定探索
     #   $ScriptDir - このスクリプトの存在フォルダ
-    # 返り値: [string] リストファイルの絶対パス(存在しなければ致命的エラーで終了)
+    # 返り値: [string] リストファイルの絶対パス(見つからなければ致命的エラーで終了)
     param([string] $Source, [string] $ScriptDir)
 
-    if ([string]::IsNullOrWhiteSpace($Source)) { $candidate = Join-Path $ScriptDir $DEFAULT_LIST_NAME }
-    else { $candidate = $Source }
-
-    try {
-        return (Resolve-Path -LiteralPath $candidate -ErrorAction Stop).ProviderPath
-    } catch {
-        Write-FatalError "List file not found: $candidate"
+    if (-not [string]::IsNullOrWhiteSpace($Source)) {
+        try {
+            return (Resolve-Path -LiteralPath $Source -ErrorAction Stop).ProviderPath
+        } catch {
+            Write-FatalError "List file not found: $Source"
+        }
     }
+
+    $candidates = @(
+        (Join-Path $ScriptDir $DEFAULT_LIST_NAME)
+        (Join-Path $PWD.ProviderPath $DEFAULT_LIST_NAME)
+    ) | Select-Object -Unique
+
+    foreach ($c in $candidates) {
+        if (Test-Path -LiteralPath $c -PathType Leaf) {
+            Write-VerboseLog "list file resolved: $c"
+            return (Resolve-Path -LiteralPath $c).ProviderPath
+        }
+    }
+    Write-FatalError ("List file '$DEFAULT_LIST_NAME' not found. Looked in:`n  " + ($candidates -join "`n  "))
 }
 
 function Read-LinkList {

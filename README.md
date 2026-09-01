@@ -13,7 +13,7 @@ Windows / PowerShell 5.1+ (also runs on PowerShell 7+). NTFS only.
 # Show help (no argument)
 .\generateLinks.ps1
 
-# Symlink .\CLAUDE.md to every path in .\target.list (next to the script)
+# Symlink .\CLAUDE.md to every path in target.list (script folder, then current dir)
 .\generateLinks.ps1 CLAUDE.md
 
 # Same, but read the list from another file
@@ -34,7 +34,7 @@ Windows / PowerShell 5.1+ (also runs on PowerShell 7+). NTFS only.
 | Option | Meaning |
 | --- | --- |
 | `-t`, `--target <path>` | Real file or directory to link **from**. Required. A bare positional argument is treated as `--target`. Resolved against the current directory. |
-| `-s`, `--source <path>` | List file. Default: `target.list` in the script's own folder. Resolved against the current directory. |
+| `-s`, `--source <path>` | List file. When omitted, `target.list` is looked up first in the script's own folder, then in the current directory. When given, the path is resolved against the current directory. |
 | `-o`, `--overwrite` | Replace an existing **link**. Real files and directories are never deleted. |
 | `--hard` | Create hard links instead of symbolic links. |
 | `--check` | Only report existence / type of each entry. Makes no changes. |
@@ -117,7 +117,7 @@ Windows / PowerShell 5.1 以上（PowerShell 7+ でも動作）。NTFS 専用。
 # ヘルプ表示（引数なし）
 .\generateLinks.ps1
 
-# .\CLAUDE.md を .\target.list（スクリプトと同じ場所）の各パスへシンボリックリンク
+# .\CLAUDE.md を target.list（スクリプトと同じ場所→無ければカレント）の各パスへシンボリックリンク
 .\generateLinks.ps1 CLAUDE.md
 
 # リストを別ファイルから読む／ハードリンクにする
@@ -138,7 +138,7 @@ Windows / PowerShell 5.1 以上（PowerShell 7+ でも動作）。NTFS 専用。
 | オプション | 意味 |
 | --- | --- |
 | `-t`, `--target <path>` | リンク元の実体ファイル／フォルダ。必須。位置引数のみでも `--target` とみなす。カレントディレクトリ基準。 |
-| `-s`, `--source <path>` | リストファイル。既定はスクリプトと同じ場所の `target.list`。カレントディレクトリ基準。 |
+| `-s`, `--source <path>` | リストファイル。省略時は `target.list` をまずスクリプトと同じ場所で、無ければカレントディレクトリで探す。指定時はカレントディレクトリ基準で解決。 |
 | `-o`, `--overwrite` | 既存の**リンク**を置き換える。実体ファイル・フォルダは削除しない。 |
 | `--hard` | シンボリックリンクではなくハードリンクを作成。 |
 | `--check` | 各エントリの存在・種類を報告するだけ。変更しない。 |

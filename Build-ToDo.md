@@ -74,3 +74,6 @@
 
 ## 更新ログ
 - 2026-09-01 作成 → 同日 承認 → 実装 → 全テスト PASS で完了
+- 2026-09-01 仕様追加: `--source` 未指定時、スクリプトフォルダに `target.list` が無ければ
+  カレントディレクトリの `target.list` も探す（`Resolve-SourcePath` 改修、テスト
+  `Invoke-SourceLookupScenario` 追加、PASS=39）。詳細は generateLinks.ToDo.md「2026-09-01 仕様追加」。

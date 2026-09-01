@@ -338,6 +338,22 @@
 
 ---
 
+## 2026-09-01 仕様追加（実装完了後）
+
+- **依頼**: `--source` 未指定時、既定の場所（スクリプトのフォルダ）に `target.list` が無ければ、
+  カレントディレクトリの `target.list` も探す。
+- **確定挙動**:
+  1. `--source` 指定時: その値（カレント基準）を使用。見つからなければ `exit 2`。
+  2. `--source` 未指定時:
+     1. `<スクリプトのフォルダ>\target.list`
+     2. 無ければ `<カレントディレクトリ>\target.list`
+     3. どちらにも無ければ、探索した両パスを表示して `exit 2`。
+- **反映先**: `generateLinks.ps1` の `Resolve-SourcePath` / `Show-Usage`、`prompt.md`、`README.md`、
+  `Test-generateLinks.ps1`（`Invoke-SourceLookupScenario` を追加）。
+- **テスト**: `powershell` 5.1 / `pwsh` 7.6.5 で PASS=39 / FAIL=0 / SKIP=1。
+
+---
+
 ## 次のステップ
 
 1. 上記ヒアリング項目への回答を受領

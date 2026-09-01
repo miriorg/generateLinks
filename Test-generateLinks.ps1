@@ -86,19 +86,24 @@ function Assert-True {
 # 実行補助
 # ----------------------------------------------------------------------------
 function Invoke-Gen {
-    # generateLinks.ps1 を子プロセスで実行し、出力(stdout+stderr)と終了コードを返す。
+    # generateLinks.ps1(または指定スクリプト)を子プロセスで実行し、出力と終了コードを返す。
     # 引数:
-    #   $GenArgs - generateLinks.ps1 へ渡す引数配列
+    #   $GenArgs - スクリプトへ渡す引数配列
+    #   $WorkDir - 実行時のカレントディレクトリ(省略時は現在の場所)
+    #   $Script  - 実行するスクリプトのパス(省略時は $GEN_SCRIPT)
     # 返り値: [pscustomobject] @{ Out; Code }
-    param([string[]] $GenArgs)
+    param([string[]] $GenArgs, [string] $WorkDir, [string] $Script = $GEN_SCRIPT)
     $ErrorActionPreference = 'Continue'   # 子プロセスが stderr に書いても停止しないようにする
     $errFile = [System.IO.Path]::GetTempFileName()
+    $pushed = $false
     try {
-        $stdout = & $HOST_EXE -NoProfile -NonInteractive -File $GEN_SCRIPT @GenArgs 2>$errFile | Out-String
+        if ($WorkDir) { Push-Location -LiteralPath $WorkDir; $pushed = $true }
+        $stdout = & $HOST_EXE -NoProfile -NonInteractive -File $Script @GenArgs 2>$errFile | Out-String
         $code   = $LASTEXITCODE
         $stderr = Get-Content -LiteralPath $errFile -Raw -ErrorAction SilentlyContinue
         return [pscustomobject]@{ Out = ($stdout + "`n" + [string]$stderr); Code = $code }
     } finally {
+        if ($pushed) { Pop-Location }
         Remove-Item -LiteralPath $errFile -Force -ErrorAction SilentlyContinue
     }
 }
@@ -249,6 +254,36 @@ function Invoke-HardLinkScenarios {
     Assert-Match $r.Out  'is a directory' 'dir-target message'
 }
 
+function Invoke-SourceLookupScenario {
+    # --source 未指定時: スクリプトフォルダに無ければカレントディレクトリの target.list を探す。
+    # 引数: $Tmp - 作業フォルダ / $Master - ダミー実体
+    # 返り値: なし
+    param([string] $Tmp, [string] $Master)
+
+    # スクリプト一式を target.list の無い隔離フォルダへコピー
+    $isoDir = Join-Path $Tmp 'iso_script'
+    New-Item -ItemType Directory -Path $isoDir -Force | Out-Null
+    Copy-Item -LiteralPath $GEN_SCRIPT -Destination $isoDir
+    $fmt = Join-Path $PSScriptRoot 'generateLinks.format.ps1xml'
+    if (Test-Path -LiteralPath $fmt) { Copy-Item -LiteralPath $fmt -Destination $isoDir }
+    $isoScript = Join-Path $isoDir 'generateLinks.ps1'
+
+    Write-Head 'source: falls back to current directory target.list'
+    $cwdDir = Join-Path $Tmp 'cwd_here'
+    New-Item -ItemType Directory -Path $cwdDir -Force | Out-Null
+    $entry = Join-Path $cwdDir 'from_cwd_list.md'
+    Set-Content -LiteralPath (Join-Path $cwdDir 'target.list') -Value @($entry) -Encoding UTF8
+
+    $r = Invoke-Gen -GenArgs @('--check', '--target', $Master) -WorkDir $cwdDir -Script $isoScript
+    Assert-Eq    $r.Code 0          'cwd-fallback exit 0'
+    Assert-Match $r.Out  'cwd_here' 'cwd-fallback used ./target.list'
+
+    Write-Head 'source: clear error when target.list is nowhere'
+    $r = Invoke-Gen -GenArgs @('--check', '--target', $Master) -WorkDir $isoDir -Script $isoScript
+    Assert-Eq    $r.Code 2         'no-list-anywhere exit 2'
+    Assert-Match $r.Out  'not found' 'no-list-anywhere clear message'
+}
+
 function Invoke-DryRunScenario {
     # --dry-run: 何も作らずに予定だけ表示。
     # 引数: $Tmp - 作業フォルダ / $Master - ダミー実体
@@ -315,6 +350,7 @@ function Invoke-AllTests {
         Write-Host "Symbolic link capability: $canSymlink" -ForegroundColor DarkGray
 
         Invoke-ArgScenarios   -Tmp $tmp -Master $master -ValidList $validList
+        Invoke-SourceLookupScenario -Tmp $tmp -Master $master
         Invoke-CheckScenario  -Tmp $tmp -Master $master
         Invoke-HardLinkScenarios -Tmp $tmp -Master $master -Master2 $master2
         Invoke-DryRunScenario -Tmp $tmp -Master $master

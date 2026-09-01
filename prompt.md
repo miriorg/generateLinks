@@ -37,6 +37,10 @@ skip    false  -            C:\users\account\.copilot\instructions.md  Folder no
 
 デフォルトではリンクを作るスクリプトが存在するフォルダの target.list を読み込む
 
+スクリプトが存在するフォルダに target.list が無い場合は、カレントディレクトリの target.list を読み込む
+
+上記のいずれにも target.list が無い場合はエラー終了する
+
 --sourceオプションを指定すると読込先が変更できる
 
 ## overwrite オプション
