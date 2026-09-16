@@ -16,9 +16,9 @@
 
 # --- Common per-user locations for AI assistant instruction files ---------
 # ~\.claude\CLAUDE.md
-# ~\.gemini\GEMINI.md
-# ~\.codex\AGENTS.md
-# ~\.github\copilot-instructions.md
+~\.gemini\GEMINI.md
+~\.codex\AGENTS.md
+~\.github\copilot-instructions.md
 # ~\.cursor\rules\main.mdc
 # ~\.aider.conf.md
 # ~\.codeium\windsurf\memories\global_rules.md
